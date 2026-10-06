@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripFlow - 여행 일정 플래너</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>TripFlow ✈️</h1>
+    </header>
+
+    <main class="container">
+      <section class="trip-sidebar">
+        <h2>내 여행 목록</h2>
+        <form id="trip-form">
+          <input
+            type="text"
+            id="trip-title"
+            placeholder="여행 제목 (예: 도쿄 3박 4일)"
+            required
+          />
+          <input
+            type="text"
+            id="trip-destination"
+            placeholder="여행지 (예: 도쿄)"
+            required
+          />
+          <div class="date-group">
+            <input type="date" id="trip-start" required />
+            <span>~</span>
+            <input type="date" id="trip-end" required />
+          </div>
+          <input
+            type="number"
+            id="trip-members"
+            placeholder="인원 수"
+            min="1"
+            value="1"
+            required
+          />
+          <button type="submit" id="save-trip-btn">여행 만들기</button>
+        </form>
+
+        <ul id="trip-list" class="trip-list"></ul>
+      </section>
+
+      <section class="itinerary-main">
+        <div id="no-trip-selected" class="empty-state">
+          <p>왼쪽 목록에서 여행을 선택하거나 새로 만들어주세요.</p>
+        </div>
+
+        <div id="itinerary-content" class="hidden">
+          <div class="itinerary-header">
+            <div>
+              <h2 id="current-trip-title"></h2>
+              <p id="current-trip-info"></p>
+            </div>
+            <button id="delete-trip-btn" class="danger-btn">여행 삭제</button>
+          </div>
+
+          <div id="date-tabs" class="date-tabs"></div>
+
+          <form id="place-form" class="place-form">
+            <input type="time" id="place-time" required />
+            <input
+              type="text"
+              id="place-name"
+              placeholder="장소명 (예: 센소지)"
+              required
+            />
+            <input type="text" id="place-memo" placeholder="메모 (선택사항)" />
+            <button type="submit">장소 추가</button>
+          </form>
+
+          <ul id="place-list" class="place-list"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

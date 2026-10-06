@@ -1,0 +1,168 @@
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+header {
+  background-color: #2b6cb0;
+  color: white;
+  padding: 1rem 2rem;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.trip-sidebar {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#trip-form input, #place-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.date-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.date-group input {
+  margin-bottom: 0 !important;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #319795;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.trip-list {
+  list-style: none;
+  margin-top: 20px;
+}
+
+.trip-item {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.trip-item:hover, .trip-item.active {
+  background-color: #ebf8ff;
+  border-color: #3182ce;
+}
+
+.itinerary-main {
+  flex: 2;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.hidden { display: none; }
+.empty-state { text-align: center; color: #718096; margin-top: 50px; }
+
+.itinerary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.danger-btn {
+  width: auto;
+  background-color: #e53e3e;
+}
+
+.date-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  width: auto;
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.tab-btn.active {
+  background-color: #3182ce;
+  color: white;
+}
+
+.place-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.place-form input { margin-bottom: 0 !important; }
+
+.place-list {
+  list-style: none;
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f7fafc;
+  border: 1px dashed #cbd5e0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: grab;
+}
+
+.place-item.dragging {
+  opacity: 0.5;
+  background: #e2e8f0;
+}
+
+.place-info strong { margin-right: 10px; color: #2b6cb0; }
+.delete-place-btn {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  cursor: pointer;
+  width: auto;
+  font-size: 14px;
+}
