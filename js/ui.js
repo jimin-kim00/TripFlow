@@ -738,6 +738,11 @@ function shorten(text, max) {
   return text.length > max ? text.slice(0, max - 1) + '…' : text;
 }
 
+// 404.html이 옛 주소에서 보내준 경우(?from=404) 주소창을 깔끔하게 정리한다. (공유 해시는 유지)
+if (new URLSearchParams(location.search).has('from')) {
+  history.replaceState(null, '', location.pathname + location.hash);
+}
+
 if (model.loadError) alert(model.loadError);
 renderAll();
 openSharedFromHash();
