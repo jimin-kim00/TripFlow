@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripFlow - 여행 일정 플래너</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>TripFlow ✈️</h1>
+    </header>
+
+    <main class="container">
+      <section class="trip-sidebar">
+        <h2>내 여행 목록</h2>
+        <form id="trip-form">
+          <input type="text" id="trip-title" placeholder="여행 제목 (예: 도쿄 3박 4일)" maxlength="100" required />
+          <input type="text" id="trip-destination" placeholder="여행지 (예: 도쿄)" maxlength="100" required />
+          <div class="date-group">
+            <input type="date" id="trip-start" required />
+            <span>~</span>
+            <input type="date" id="trip-end" required />
+          </div>
+          <input type="number" id="trip-members" placeholder="인원 수" min="1" value="1" required />
+          <button type="submit" id="save-trip-btn">여행 만들기</button>
+          <button type="button" id="cancel-trip-edit-btn" class="secondary-btn hidden">수정 취소</button>
+        </form>
+
+        <button type="button" id="import-btn" class="secondary-btn import-btn">📂 JSON 파일 가져오기</button>
+        <input type="file" id="import-file" accept=".json,application/json" hidden />
+
+        <ul id="trip-list" class="trip-list"></ul>
+      </section>
+
+      <section class="itinerary-main">
+        <div id="shared-banner" class="shared-banner hidden">
+          <span>🔗 공유받은 여행입니다. <strong>읽기 전용</strong>으로 보고 있어요.</span>
+          <div class="banner-actions">
+            <button type="button" id="copy-shared-btn">내 여행으로 복사</button>
+            <button type="button" id="close-shared-btn" class="secondary-btn">닫기</button>
+          </div>
+        </div>
+
+        <div id="no-trip-selected" class="empty-state">
+          <p>왼쪽 목록에서 여행을 선택하거나 새로 만들어주세요.</p>
+        </div>
+
+        <div id="itinerary-content" class="hidden">
+          <div class="itinerary-header">
+            <div>
+              <h2 id="current-trip-title"></h2>
+              <p id="current-trip-info"></p>
+            </div>
+            <div class="header-actions edit-only">
+              <button type="button" id="share-trip-btn">🔗 공유</button>
+              <button type="button" id="export-trip-btn" class="secondary-btn">내보내기</button>
+              <button type="button" id="edit-trip-btn" class="secondary-btn">여행 수정</button>
+              <button type="button" id="delete-trip-btn" class="danger-btn">여행 삭제</button>
+            </div>
+          </div>
+
+          <div id="date-tabs" class="date-tabs"></div>
+
+          <form id="place-form" class="place-form edit-only">
+            <div class="place-form-row">
+              <input type="time" id="place-time" required />
+              <input type="text" id="place-name" placeholder="장소명 (예: 센소지)" maxlength="100" required />
+              <input type="text" id="place-memo" placeholder="메모 (선택사항)" maxlength="300" />
+              <button type="submit" id="place-submit-btn">장소 추가</button>
+              <button type="button" id="cancel-place-edit-btn" class="secondary-btn hidden">취소</button>
+            </div>
+            <div class="location-row">
+              <button type="button" id="search-location-btn" class="secondary-btn">📍 위치 검색</button>
+              <button type="button" id="pick-location-btn" class="secondary-btn">🗺️ 지도에서 선택</button>
+              <span id="pending-location" class="location-chip hidden">
+                <span id="pending-location-text"></span>
+                <button type="button" id="clear-location-btn" class="chip-clear" aria-label="위치 지우기">✕</button>
+              </span>
+              <span id="location-status" class="location-status" role="status"></span>
+            </div>
+            <ul id="search-results" class="search-results hidden"></ul>
+          </form>
+
+          <div class="itinerary-body">
+            <div class="itinerary-list">
+              <div class="day-toolbar">
+                <label>
+                  이동수단
+                  <select id="travel-mode">
+                    <option value="transit">🚇 대중교통</option>
+                    <option value="walk">🚶 도보</option>
+                    <option value="car">🚗 자동차</option>
+                  </select>
+                </label>
+                <span id="day-summary" class="day-summary"></span>
+              </div>
+              <ul id="place-list" class="place-list"></ul>
+            </div>
+            <div class="map-panel">
+              <div id="map" class="map"></div>
+              <p class="map-note">이동 거리·시간은 직선거리를 기준으로 한 <strong>추정치</strong>입니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="share-dialog" class="share-dialog">
+      <h3>여행 공유 링크</h3>
+      <p>이 링크를 받은 사람은 일정을 <strong>읽기 전용</strong>으로 볼 수 있고, 원하면 자기 여행으로 복사할 수 있어요.</p>
+      <input type="text" id="share-url" readonly />
+      <p id="share-note" class="share-note"></p>
+      <div class="dialog-actions">
+        <button type="button" id="copy-share-url-btn">링크 복사</button>
+        <button type="button" id="close-share-dialog-btn" class="secondary-btn">닫기</button>
+      </div>
+    </dialog>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script type="module" src="js/ui.js"></script>
+  </body>
+</html>
