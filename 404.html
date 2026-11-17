@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripFlow - 페이지 이동 중</title>
+    <script>
+      // GitHub Pages는 없는 주소에 이 404.html을 보여준다.
+      // 예전 배포 주소(/TripFlow/index.html/)를 브라우저가 기억하고 있는 경우 등을 위해 메인 페이지로 보낸다.
+      // - 예전 주소들(/TripFlow/, /TripFlow/index.html)은 브라우저에 '이동(301)' 기록이 남아 있을 수 있어서,
+      //   한 번도 쓰인 적 없는 ?from=404 주소로 보낸다. (메인 페이지가 이 쿼리를 지운다)
+      // - 공유 링크(#share=...)가 사라지지 않도록 해시를 그대로 붙인다.
+      // - 이미 ?from=404로 왔는데 또 404라면 무한 이동을 막기 위해 멈추고 안내만 보여준다.
+      (function () {
+        var segments = location.pathname.split('/').filter(Boolean);
+        var base = location.hostname.endsWith('github.io') && segments.length ? '/' + segments[0] + '/' : '/';
+        if (/[?&]from=404\b/.test(location.search)) return;
+        location.replace(base + '?from=404' + location.hash);
+      })();
+    </script>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 60px 16px; color: #4a5568; background: #f4f7f6; }
+      a { color: #2b6cb0; }
+    </style>
+  </head>
+  <body>
+    <h1>TripFlow ✈️</h1>
+    <p>페이지를 찾을 수 없습니다. 잠시 후 메인 페이지로 이동합니다.</p>
+    <p><a id="home" href="./">메인 페이지로 가기</a></p>
+    <script>
+      var seg = location.pathname.split('/').filter(Boolean);
+      if (location.hostname.endsWith('github.io') && seg.length) document.getElementById('home').href = '/' + seg[0] + '/?from=404';
+    </script>
+  </body>
+</html>
