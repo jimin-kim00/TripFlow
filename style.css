@@ -157,12 +157,58 @@ button:hover {
   background: #e2e8f0;
 }
 
+.place-item.editing {
+  border: 1px solid #3182ce;
+  background: #ebf8ff;
+}
+
+.place-empty {
+  padding: 20px;
+  text-align: center;
+  color: #a0aec0;
+}
+
+.place-info { min-width: 0; overflow-wrap: anywhere; }
 .place-info strong { margin-right: 10px; color: #2b6cb0; }
-.delete-place-btn {
+.place-memo { color: #718096; display: block; }
+
+.place-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.text-btn {
   background: none;
   border: none;
-  color: #e53e3e;
+  color: #3182ce;
   cursor: pointer;
   width: auto;
   font-size: 14px;
+  padding: 6px 8px;
+}
+
+.text-btn.danger { color: #e53e3e; }
+
+.secondary-btn {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+#cancel-trip-edit-btn { margin-top: 8px; }
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.header-actions button { width: auto; }
+
+.place-form button { width: auto; white-space: nowrap; }
+
+form.editing {
+  outline: 2px solid #90cdf4;
+  outline-offset: 4px;
+  border-radius: 4px;
 }

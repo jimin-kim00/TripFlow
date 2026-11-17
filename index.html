@@ -41,6 +41,7 @@
             required
           />
           <button type="submit" id="save-trip-btn">여행 만들기</button>
+          <button type="button" id="cancel-trip-edit-btn" class="secondary-btn hidden">수정 취소</button>
         </form>
 
         <ul id="trip-list" class="trip-list"></ul>
@@ -57,7 +58,10 @@
               <h2 id="current-trip-title"></h2>
               <p id="current-trip-info"></p>
             </div>
-            <button id="delete-trip-btn" class="danger-btn">여행 삭제</button>
+            <div class="header-actions">
+              <button type="button" id="edit-trip-btn" class="secondary-btn">여행 수정</button>
+              <button type="button" id="delete-trip-btn" class="danger-btn">여행 삭제</button>
+            </div>
           </div>
 
           <div id="date-tabs" class="date-tabs"></div>
@@ -71,7 +75,8 @@
               required
             />
             <input type="text" id="place-memo" placeholder="메모 (선택사항)" />
-            <button type="submit">장소 추가</button>
+            <button type="submit" id="place-submit-btn">장소 추가</button>
+            <button type="button" id="cancel-place-edit-btn" class="secondary-btn hidden">취소</button>
           </form>
 
           <ul id="place-list" class="place-list"></ul>
@@ -79,6 +84,6 @@
       </section>
     </main>
 
-    <script src="app.js"></script>
+    <script type="module" src="js/ui.js"></script>
   </body>
 </html>
