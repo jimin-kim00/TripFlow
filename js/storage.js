@@ -76,7 +76,8 @@ export function migrate(data) {
   return trips.map(normalizeTrip).filter(Boolean);
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TRAVEL_MODE_KEYS = ['walk', 'transit', 'car'];
 
 function normalizeTrip(trip) {
   if (!trip || typeof trip !== 'object' || typeof trip.id !== 'string') return null;
@@ -96,6 +97,8 @@ function normalizeTrip(trip) {
     endDate: String(trip.endDate ?? ''),
     members: Number(trip.members) || 1,
     updatedAt: Number(trip.updatedAt) || Date.now(),
+    travelMode: TRAVEL_MODE_KEYS.includes(trip.travelMode) ? trip.travelMode : 'transit',
+    center: normalizeCenter(trip.center), // 여행지 중심 좌표 (지도 기본 위치, 검색 범위 우선순위)
     itinerary,
   };
 }
@@ -124,6 +127,11 @@ function normalizeLocation(loc) {
     address: String(loc.address ?? ''),
     source: loc.source === 'manual' ? 'manual' : 'search',
   };
+}
+
+function normalizeCenter(center) {
+  const loc = normalizeLocation(center);
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
 }
 
 /** 손상된 원본을 백업 키로 옮긴다. 원래 키는 지워서 새로고침할 때마다 백업이 쌓이지 않게 한다. */

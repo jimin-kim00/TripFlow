@@ -1,7 +1,7 @@
 // 여행 데이터를 바꾸는 함수 모음. DOM을 전혀 건드리지 않는다.
 // 모든 변경 함수는 성공하면 saveData()까지 호출하고, 저장 성공 여부를 반환한다.
 
-import { loadData, saveData } from './storage.js';
+import { loadData, saveData, DATE_RE } from './storage.js';
 
 const loaded = loadData();
 let trips = loaded.trips;
@@ -17,10 +17,6 @@ export function getTrip(tripId) {
   return trips.find((t) => t.id === tripId) ?? null;
 }
 
-export function getPlaces(tripId, date) {
-  return getTrip(tripId)?.itinerary[date] ?? [];
-}
-
 export function getSortedDates(trip) {
   return Object.keys(trip.itinerary).sort();
 }
@@ -31,10 +27,11 @@ export function getSortedDates(trip) {
  */
 export function getDatesInRange(startDate, endDate) {
   const dates = [];
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) return dates;
   const curr = new Date(startDate + 'T00:00:00Z');
   const end = new Date(endDate + 'T00:00:00Z');
   if (Number.isNaN(curr.getTime()) || Number.isNaN(end.getTime())) return dates;
-  while (curr <= end) {
+  while (curr <= end && dates.length <= 366) {
     dates.push(curr.toISOString().slice(0, 10));
     curr.setUTCDate(curr.getUTCDate() + 1);
   }
@@ -45,6 +42,7 @@ export function getDatesInRange(startDate, endDate) {
 export function validateTripInput({ title, destination, startDate, endDate }) {
   if (!title.trim() || !destination.trim()) return '여행 제목과 여행지를 입력해주세요.';
   if (!startDate || !endDate) return '시작일과 종료일을 입력해주세요.';
+  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) return '날짜 형식이 올바르지 않습니다.';
   if (startDate > endDate) return '종료일은 시작일보다 빠를 수 없습니다.';
   if (getDatesInRange(startDate, endDate).length > 365) return '여행 기간은 최대 365일까지 설정할 수 있습니다.';
   return null;
@@ -59,6 +57,8 @@ export function createTrip({ title, destination, startDate, endDate, members }) 
     endDate,
     members: Number(members) || 1,
     updatedAt: Date.now(),
+    travelMode: 'transit',
+    center: null,
     itinerary: {},
   };
   getDatesInRange(startDate, endDate).forEach((date) => (trip.itinerary[date] = []));
@@ -96,9 +96,27 @@ export function updateTrip(tripId, { title, destination, startDate, endDate, mem
     trip.endDate = endDate;
   }
 
+  // 여행지가 바뀌면 지도 중심 좌표를 다시 찾아야 한다.
+  if (destination.trim() !== trip.destination) trip.center = null;
+
   trip.title = title.trim();
   trip.destination = destination.trim();
   trip.members = Number(members) || 1;
+  trip.updatedAt = Date.now();
+  return saveData(trips);
+}
+
+export function setTripCenter(tripId, center) {
+  const trip = getTrip(tripId);
+  if (!trip) return false;
+  trip.center = center ? { lat: center.lat, lng: center.lng } : null;
+  return saveData(trips);
+}
+
+export function setTravelMode(tripId, mode) {
+  const trip = getTrip(tripId);
+  if (!trip) return false;
+  trip.travelMode = mode;
   trip.updatedAt = Date.now();
   return saveData(trips);
 }
@@ -109,7 +127,13 @@ export function deleteTrip(tripId) {
   return saveData(trips);
 }
 
-export function addPlace(tripId, date, { time, name, memo }) {
+/** 같은 날에 이름이 같은 장소가 있는지 (공백·대소문자 무시) */
+export function findDuplicatePlace(trip, date, name, exceptId = null) {
+  const key = name.trim().toLowerCase();
+  return (trip?.itinerary[date] ?? []).find((p) => p.id !== exceptId && p.name.trim().toLowerCase() === key) ?? null;
+}
+
+export function addPlace(tripId, date, { time, name, memo, location }) {
   const trip = getTrip(tripId);
   if (!trip || !trip.itinerary[date]) return false;
   trip.itinerary[date].push({
@@ -117,17 +141,17 @@ export function addPlace(tripId, date, { time, name, memo }) {
     time,
     name: name.trim(),
     memo: memo.trim(),
-    location: null, // 지도 기능(1단계)에서 채운다
+    location: copyLocation(location),
   });
   trip.updatedAt = Date.now();
   return saveData(trips);
 }
 
-export function updatePlace(tripId, date, placeId, { time, name, memo }) {
+export function updatePlace(tripId, date, placeId, { time, name, memo, location }) {
   const trip = getTrip(tripId);
   const place = trip?.itinerary[date]?.find((p) => p.id === placeId);
   if (!place) return false;
-  Object.assign(place, { time, name: name.trim(), memo: memo.trim() });
+  Object.assign(place, { time, name: name.trim(), memo: memo.trim(), location: copyLocation(location) });
   trip.updatedAt = Date.now();
   return saveData(trips);
 }
@@ -159,6 +183,47 @@ export function reorderPlaces(tripId, date, orderedIds) {
   trip.itinerary[date] = reordered;
   trip.updatedAt = Date.now();
   return saveData(trips);
+}
+
+/**
+ * 공유 링크나 JSON 파일에서 가져온 여행을 내 여행 목록에 추가한다.
+ * - 기존 데이터와 겹치지 않도록 여행·장소 id를 모두 새로 발급한다.
+ * - 일정은 시작일~종료일 범위로 다시 맞춘다. (범위 밖 날짜의 일정은 버리고, 빠진 날짜는 빈 배열로 채움)
+ * 이미 storage.migrate()로 정규화된 trip을 받는다고 가정한다.
+ * @returns {{ trip: object|null, saved: boolean, error: string|null }}
+ */
+export function importTrip(source) {
+  const error = validateTripInput(source);
+  if (error) return { trip: null, saved: false, error };
+
+  const itinerary = {};
+  for (const date of getDatesInRange(source.startDate, source.endDate)) {
+    itinerary[date] = (source.itinerary[date] ?? []).map((p) => ({
+      ...p,
+      id: newId('place'),
+      location: copyLocation(p.location),
+    }));
+  }
+
+  const trip = {
+    id: newId('trip'),
+    title: source.title,
+    destination: source.destination,
+    startDate: source.startDate,
+    endDate: source.endDate,
+    members: source.members,
+    updatedAt: Date.now(),
+    travelMode: source.travelMode,
+    center: source.center ? { ...source.center } : null,
+    itinerary,
+  };
+  trips.push(trip);
+  return { trip, saved: saveData(trips), error: null };
+}
+
+function copyLocation(loc) {
+  if (!loc) return null;
+  return { lat: loc.lat, lng: loc.lng, address: loc.address ?? '', source: loc.source === 'manual' ? 'manual' : 'search' };
 }
 
 function newId(prefix) {
